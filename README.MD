@@ -46,7 +46,11 @@ To get started with the PAM Faillock Web API, follow these instructions:
    ```bash
     pip3 install -r requirements.txt
 
-4. **Run the Application**
+4. **Run the bash backup and pam setup script:**
+   ```bash
+   sudo bash pam_files_backup_setup.sh
+
+5. **Run the Application**
 
    - Start the Flask development server:
    ```bash
