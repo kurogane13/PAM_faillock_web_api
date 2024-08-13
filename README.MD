@@ -15,13 +15,15 @@ To get started with the PAM Faillock Web API, follow these instructions:
 
 ### Prerequisites
 
-- Python 3.x
-- Flask
-- Flask-CORS
-- `sudo` permissions for modifying system files
+- **Python 3.x**: Ensure Python 3 is installed on your system.
+- **Flask**: A lightweight WSGI web application framework.
+- **Flask-CORS**: A Flask extension for handling Cross-Origin Resource Sharing (CORS).
+- **`sudo` permissions**: Required for modifying system files and managing services.
 
-### Clone the Repository
+### Setup Instructions
 
-```bash
-git clone https://github.com/yourusername/pam-faillock-web-api.git
-cd pam-faillock-web-api
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/yourusername/pam-faillock-web-api.git
+   cd pam-faillock-web-api
