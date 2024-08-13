@@ -1,10 +1,10 @@
 # PAM Faillock Web API
 
-# AUTHOR: GUSTAVO WYDLER AZUAGA
-# VERSION: 1
-# RELEASE DATE: 08-13-2024
+## AUTHOR: GUSTAVO WYDLER AZUAGA
+## VERSION: 1
+## RELEASE DATE: 08-13-2024
 
-- Welcome to the PAM Faillock Web API project!- 
+- Welcome to the PAM Faillock Web API project!
 - This API provides a web interface for managing PAM faillock configurations and monitoring authentication logs. 
 - It is built using Flask and offers endpoints for interacting with system security settings related to account locking policies.
 
