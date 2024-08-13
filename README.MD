@@ -40,12 +40,6 @@ To get started with the PAM Faillock Web API, follow these instructions:
    ```bash
     pip3 install -r requirements.txt
 
-The requirements.txt file should include the following dependencies:
-
-   - Flask
-   - Flask-CORS
-
-
 4. **Run the Application**
 
    - Start the Flask development server:
