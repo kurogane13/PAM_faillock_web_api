@@ -28,19 +28,24 @@ To get started with the PAM Faillock Web API, follow these instructions:
    git clone https://github.com/yourusername/pam-faillock-web-api.git
    cd pam-faillock-web-api
 
-2. **Create a Virtual Environment (Recommended)**
+2. **Create templates folder and move index file**
+   ```bash
+   mkdir -p templates
+   mv index.html templates
+
+3. **Create a Virtual Environment (Recommended)**
 
    ```bash
     python3 -m venv venv
     source venv/bin/activate
 
-3. **Install Dependencies**
+4. **Install Dependencies**
 
    - Install the necessary Python packages using pip:
    ```bash
     pip3 install -r requirements.txt
 
-4. **Run the Application**
+5. **Run the Application**
 
    - Start the Flask development server:
    ```bash
