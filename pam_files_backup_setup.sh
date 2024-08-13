@@ -1,32 +1,33 @@
 #!/bin/bash
 
-# Define the source and destination paths
-declare -A files=(
-    ["/etc/pam.d/system-auth"]="pam_files/system-auth"
-    ["/etc/pam.d/password-auth"]="pam_files/password-auth"
-    ["/etc/pam.d/sshd"]="pam_files/sshd"
-    ["/etc/security/faillock.conf"]="pam_files/faillock.conf"
-)
+# Function to back up and move files
+backup_and_replace() {
+    # Back up the original files
+    echo "Backing up /etc/pam.d/system-auth to /etc/pam.d/system-auth.original"
+    sudo cp /etc/pam.d/system-auth /etc/pam.d/system-auth.original
 
-# Function to create a backup and move files
-backup_and_move() {
-    for dest in "${!files[@]}"; do
-        src="${files[$dest]}"
-        
-        # Check if source file exists
-        if [ -f "$src" ]; then
-            # Create backup with .original extension
-            echo "Backing up $dest to $dest.original"
-            sudo cp "$dest" "$dest.original"
-            
-            # Move the file to its destination
-            echo "Moving $src to $dest"
-            sudo mv "$src" "$dest"
-        else
-            echo "Source file $src does not exist. Skipping."
-        fi
-    done
+    echo "Backing up /etc/pam.d/password-auth to /etc/pam.d/password-auth.original"
+    sudo cp /etc/pam.d/password-auth /etc/pam.d/password-auth.original
+
+    echo "Backing up /etc/pam.d/sshd to /etc/pam.d/sshd.original"
+    sudo cp /etc/pam.d/sshd /etc/pam.d/sshd.original
+
+    echo "Backing up /etc/security/faillock.conf to /etc/security/faillock.conf.original"
+    sudo cp /etc/security/faillock.conf /etc/security/faillock.conf.original
+
+    # Move the new files to their destinations
+    echo "Moving pam_files/system-auth to /etc/pam.d/system-auth"
+    sudo mv pam_files/system-auth /etc/pam.d/system-auth
+
+    echo "Moving pam_files/password-auth to /etc/pam.d/password-auth"
+    sudo mv pam_files/password-auth /etc/pam.d/password-auth
+
+    echo "Moving pam_files/sshd to /etc/pam.d/sshd"
+    sudo mv pam_files/sshd /etc/pam.d/sshd
+
+    echo "Moving pam_files/faillock.conf to /etc/security/faillock.conf"
+    sudo mv pam_files/faillock.conf /etc/security/faillock.conf
 }
 
 # Execute the function
-backup_and_move
+backup_and_replace
