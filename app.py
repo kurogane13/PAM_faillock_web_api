@@ -6,6 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+
 def run_command(command):
     try:
         result = subprocess.run(f'sudo {command}', shell=True, text=True, capture_output=True, check=True)
@@ -13,9 +14,11 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         return "No data to show"
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/api/<action>', methods=['GET', 'POST'])
 def api(action):
@@ -59,7 +62,7 @@ def api(action):
 
             command = (
                 f"sed -i 's/unlock_time=[0-9]*/unlock_time={unlock_time} /g' "
-                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf"
+                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf && grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
             )
 
         elif action == 'deny':
@@ -68,7 +71,6 @@ def api(action):
             if deny_value is not None:
 
                 try:
-
                     deny_value = int(deny_value)
 
                 except ValueError:
@@ -80,24 +82,25 @@ def api(action):
 
             command = (
                 f"sed -i 's/deny=[0-9]*/deny={deny_value} /g' "
-                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf"
+                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf && grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
             )
 
-    elif action == 'allow_even_deny_root':
 
-        command = "sed -i 's/^#even_deny_root/even_deny_root/' /etc/security/faillock.conf && echo 'Enabled even_deny_root in /etc/security/faillock.conf:' && grep even_deny_root /etc/security/faillock.conf"
 
-    elif action == 'deny_even_deny_root':
+        elif action == 'allow_even_deny_root':
+            command = (
+                "sed -i 's/^#even_deny_root/even_deny_root/' /etc/security/faillock.conf && echo " " && echo 'Enabled even_deny_root in /etc/security/faillock.conf:' && echo " " && grep even_deny_root /etc/security/faillock.conf")
 
-        command = "sed -i 's/^even_deny_root/#even_deny_root/' /etc/security/faillock.conf && echo 'Disabled even_deny_root in /etc/security/faillock.conf:' && grep even_deny_root /etc/security/faillock.conf"
+
+        elif action == 'deny_even_deny_root':
+            command = (
+                "sed -i 's/^even_deny_root/#even_deny_root/' /etc/security/faillock.conf && echo " " && echo 'Disabled even_deny_root in /etc/security/faillock.conf:' && echo " " && grep even_deny_root /etc/security/faillock.conf")
 
     else:
 
         return "Error: Invalid action", 400
 
-    output = run_command(command)
-
-    return output
+    return run_command(command)
 
 
 @app.route('/api/sshd_status_log', methods=['GET'])
@@ -109,6 +112,7 @@ def sshd_status_log():
         return log_content
     except Exception as e:
         return str(e)
+
 
 @app.route('/api/sshd', methods=['GET', 'POST'])
 def sshd_api():
@@ -125,7 +129,7 @@ def sshd_api():
     os.system(sshd_log)
     sshd_command = f"sudo service sshd {command} > sshd_status.log 2>&1"
     output = run_command(sshd_command)
-    
+
     # Automatically check the status after starting, stopping, or restarting SSHD
     if command in ['start', 'stop', 'restart']:
         status_command = "sudo service sshd status"
@@ -136,7 +140,7 @@ def sshd_api():
     with open('sshd_status.log', 'r') as log_file:
         output = log_file.read()
         return output
-        
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
