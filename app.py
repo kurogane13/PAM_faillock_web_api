@@ -127,13 +127,8 @@ def api(action):
         elif action == 'allow_even_deny_root':
             command = (
                 "sed -i 's/^#even_deny_root/even_deny_root/' /etc/security/faillock.conf && echo " " && echo 'Enabled even_deny_root in /etc/security/faillock.conf:' && echo " " && grep even_deny_root /etc/security/faillock.conf")
-<<<<<<< HEAD
 
 
-=======
-
-
->>>>>>> 5f04b585ab977b8bf7a28ebc242d8c55acc7ff2e
         elif action == 'deny_even_deny_root':
             command = (
                 "sed -i 's/^even_deny_root/#even_deny_root/' /etc/security/faillock.conf && echo " " && echo 'Disabled even_deny_root in /etc/security/faillock.conf:' && echo " " && grep even_deny_root /etc/security/faillock.conf")
