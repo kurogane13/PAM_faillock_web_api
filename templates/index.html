@@ -212,7 +212,7 @@
     <h1>PAM FAILLOCK WEB API</h1>
     <div class="button-group">
         <div class="column">
-            <div class="section-title">Show Commands</div>
+            <div class="section-title">Vizualization Commands</div>
             <div class="action-group">
                 <button class="btn btn-show" onclick="handleAction('show_faillock_all_users')">Show faillock for All Users</button>
             </div>
@@ -225,13 +225,16 @@
                 <button class="btn btn-show" onclick="handleAction('show_unlock_time')">Show Unlock Time</button>
             </div>
             <div class="action-group">
-                <button class="btn btn-show" onclick="handleAction('show_deny_value')">Show Deny Value</button>
+                <button class="btn btn-show" onclick="handleAction('show_deny_value')">Show Failed attempts value</button>
             </div>
             <div class="action-group">
                 <button class="btn btn-show" onclick="handleAction('show_last_30_log_entries')">Show Last 30 Log Entries</button>
             </div>
             <div class="action-group">
-                <button class="btn btn-show" onclick="handleAction('count_failed_attempts')">Show Login Attempts</button>
+                <button class="btn btn-show" onclick="handleAction('show_login_attempts')">Show Login Attempts</button>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-show" onclick="handleAction('generate_logins_report')">Generate logins report</button>
             </div>
         </div>
         <div class="column">
