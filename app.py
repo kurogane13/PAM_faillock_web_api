@@ -30,7 +30,6 @@ def run_command(command):
 def index():
     return render_template('index.html')
 
-
 @app.route('/api/<action>', methods=['GET', 'POST'])
 def api(action):
     if request.method == 'GET':
@@ -182,6 +181,43 @@ def sshd_api():
     with open('sshd_status.log', 'r') as log_file:
         output = log_file.read()
         return output
+
+@app.route('/api/gdm', methods=['GET', 'POST'])
+def gdm_api():
+    # Handling both GET and POST requests
+    if request.method == 'GET':
+        command = request.args.get('command', '')
+    elif request.method == 'POST':
+        command = request.form.get('command', '')  # For form data
+        if not command:
+            command = request.json.get('command', '')  # For JSON data
+
+    # Create the log file and execute the SSHD command
+    sshd_log = "touch gdm_status.log"
+    os.system(sshd_log)
+    sshd_command = f"sudo service gdm {command} > gdm_status.log 2>&1"
+    output = run_command(sshd_command)
+
+    # Automatically check the status after starting, stopping, or restarting SSHD
+    if command in ['start', 'stop', 'restart']:
+        status_command = "sudo service gdm status"
+        status_output = run_command(status_command)
+        return status_output
+
+    # If the command was 'status', return the log content directly
+    with open('gdm_status.log', 'r') as log_file:
+        output = log_file.read()
+        return output
+
+@app.route('/api/gdm_status_log', methods=['GET'])
+def gdm_status_log():
+    log_file_path = 'gdm_status.log'
+    try:
+        with open(log_file_path, 'r') as log_file:
+            log_content = log_file.read()
+        return log_content
+    except Exception as e:
+        return str(e)
 
 
 if __name__ == '__main__':
