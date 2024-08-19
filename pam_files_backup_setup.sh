@@ -16,17 +16,17 @@ backup_and_replace() {
     sudo cp /etc/security/faillock.conf /etc/security/faillock.conf.original
 
     # Move the new files to their destinations
-    echo "Moving pam_files/system-auth to /etc/pam.d/system-auth"
-    sudo mv pam_files/system-auth /etc/pam.d/system-auth
+    echo "Copying pam_files/system-auth to /etc/pam.d/system-auth"
+    sudo cp pam_files/system-auth /etc/pam.d/system-auth
 
-    echo "Moving pam_files/password-auth to /etc/pam.d/password-auth"
-    sudo mv pam_files/password-auth /etc/pam.d/password-auth
+    echo "Copying pam_files/password-auth to /etc/pam.d/password-auth"
+    sudo cp pam_files/password-auth /etc/pam.d/password-auth
 
-    echo "Moving pam_files/sshd to /etc/pam.d/sshd"
-    sudo mv pam_files/sshd /etc/pam.d/sshd
+    echo "Copying pam_files/sshd to /etc/pam.d/sshd"
+    sudo cp pam_files/sshd /etc/pam.d/sshd
 
-    echo "Moving pam_files/faillock.conf to /etc/security/faillock.conf"
-    sudo mv pam_files/faillock.conf /etc/security/faillock.conf
+    echo "Copying pam_files/faillock.conf to /etc/security/faillock.conf"
+    sudo cp pam_files/faillock.conf /etc/security/faillock.conf
 }
 
 # Execute the function
