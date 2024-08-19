@@ -6,6 +6,17 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Determine the correct log file at the start
+def determine_logfile():
+    if os.path.exists('/var/log/auth.log'):
+        return '/var/log/auth.log'
+    elif os.path.exists('/var/log/secure'):
+        return '/var/log/secure'
+    else:
+        return None
+
+LOGFILE = determine_logfile()
+determine_logfile()
 
 def run_command(command):
     try:
@@ -30,43 +41,49 @@ def api(action):
         elif action == 'show_deny_value':
             command = "grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
         elif action == 'show_last_30_log_entries':
-            command = "[ -e /var/log/secure ] && LOGFILE=/var/log/secure || ([ -e /var/log/auth ] && LOGFILE=/var/log/auth) && sudo tail -n 30 $LOGFILE"
+            command = f"tail -n 30 {LOGFILE}"
         elif action == 'show_login_attempts':
-            command = "[ -e /var/log/secure ] && LOGFILE=/var/log/secure || ([ -e /var/log/auth ] && LOGFILE=/var/log/auth) && sudo cat $LOGFILE | grep -E 'gdm-password.*authentication failure|sshd.*Failed|Account temporary locked|sshd.*Accepted|gdm-password.*session opened for user'"
+            command = (
+                f"cat {LOGFILE}"
+            )
         elif action == 'generate_logins_report':
-            command = """
-                PRIMARY_LOGFILE="/var/log/secure"
-                BACKUP_LOGFILE="/var/log/auth.log"
-                if [[ -f "$PRIMARY_LOGFILE" ]]; then
-                    LOGFILE="$PRIMARY_LOGFILE"
-                elif [[ -f "$BACKUP_LOGFILE" ]]; then
-                    LOGFILE="$BACKUP_LOGFILE"
-                else
-                    echo "Neither $PRIMARY_LOGFILE nor $BACKUP_LOGFILE is present. Exiting."
-                    exit 1
-                fi
-                echo -e
-                echo "Report started at: $(date '+%a %b %d %T %Z %Y')" && echo -e
-                echo -e "\\nUsers logged in: $(who -urb)"
-                echo -e "\\nAmount of users logged in: $(who -urbq)\n"
-                echo "========== Authentication Report ==========" && echo -e
+            command = f"""
+                echo
+                echo "Report started at: $(date '+%a %b %d %T %Z %Y')"
+                echo
+                echo "Users logged in: $(who -urb)"
+                echo
+                echo "Amount of users logged in: $(who -urbq)"
+                echo
+                echo "========== Authentication Report =========="
+                echo
                 echo -n "Graphical GDM - Accepted Logins: "
-                sudo cat "$LOGFILE" | grep -E "gdm-password.*session opened for user" | wc -l && echo -e
+                grep -c 'gdm-password.*session opened for user' {LOGFILE}
+                echo
                 echo -n "Graphical GDM - Failed Logins: "
-                sudo cat "$LOGFILE" | grep "gdm-password.*authentication failure" | wc -l && echo -e
+                grep -c 'gdm-password.*authentication failure' {LOGFILE}
+                echo
                 echo -n "SSHD - Succeeded Logins: "
-                sudo cat "$LOGFILE" | grep -E "sshd.*Accepted" | wc -l && echo -e
+                grep -c 'sshd.*Accepted' {LOGFILE}
+                echo
                 echo -n "SSHD - Failed Logins: "
-                sudo cat "$LOGFILE" | grep "sshd.*Failed" | wc -l && echo -e
+                grep -c 'sshd.*Failed password' {LOGFILE}
+                echo
                 echo -n "Account Temporary Locks: "
-                sudo cat "$LOGFILE" | grep "account temporary locked" | wc -l && echo -e
+                grep -c 'pam_faillock.*account temporary locked' {LOGFILE}
+                echo
                 echo "--------------------------------------------"
-                echo -e "           LINUX SYSTEM INFO             "
-                echo -e "\\n$(cat /etc/os-release)"
-                echo -e "\\n$(uname -a)"
-                echo -e "\\n$(ip addr)"
-                echo -e "\\nSystem uptime info: $(uptime -s && uptime -p)"
-                echo -e "\\nReport ended at: $(date "+%a %b %d %T %Z %Y")"
+                echo "           LINUX SYSTEM INFO             "
+                echo
+                cat /etc/os-release
+                echo
+                uname -a
+                echo
+                ip addr
+                echo
+                echo "System uptime info: $(uptime -s && uptime -p)"
+                echo
+                echo "Report ended at: $(date '+%a %b %d %T %Z %Y')"
             """
         elif action == 'show_faillock_specific_user':
             user = request.args.get('user', '')
@@ -180,4 +197,8 @@ def sshd_api():
 
 
 if __name__ == '__main__':
+    if LOGFILE:
+        print(f"Using log file: {LOGFILE}")
+    else:
+        print("No log file found.")
     app.run(host='0.0.0.0', port=5000, debug=True)
