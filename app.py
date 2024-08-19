@@ -138,18 +138,6 @@ def api(action):
                 f"sed -i 's/deny=[0-9]*/deny={deny_value} /g' "
                 "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf && grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
             )
-
-
-
-        elif action == 'allow_even_deny_root':
-            command = (
-                "sed -i 's/^#even_deny_root/even_deny_root/' /etc/security/faillock.conf && echo " " && echo 'Enabled even_deny_root in /etc/security/faillock.conf:' && echo " " && grep even_deny_root /etc/security/faillock.conf")
-
-
-        elif action == 'deny_even_deny_root':
-            command = (
-                "sed -i 's/^even_deny_root/#even_deny_root/' /etc/security/faillock.conf && echo " " && echo 'Disabled even_deny_root in /etc/security/faillock.conf:' && echo " " && grep even_deny_root /etc/security/faillock.conf")
-
     else:
 
         return "Error: Invalid action", 400
