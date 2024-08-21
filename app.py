@@ -1,4 +1,6 @@
-from flask import Flask, request, jsonify, render_template
+from cgi import logfile
+
+from flask import Flask, request, jsonify, render_template, Response
 from flask_cors import CORS
 import subprocess
 import os
@@ -25,7 +27,6 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         return "No data to show"
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -33,12 +34,15 @@ def index():
 @app.route('/api/<action>', methods=['GET', 'POST'])
 def api(action):
     if request.method == 'GET':
-        if action == 'show_faillock_all_users':
+        if action == 'live_logging':
+            live_command = f"while true; do sudo tail -n 25 {LOGFILE}; sleep 2; done"
+            return run_command_live(live_command)
+        elif action == 'show_faillock_all_users':
             command = 'sudo faillock'
         elif action == 'show_unlock_time':
-            command = "grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
+            command = "grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password"
         elif action == 'show_deny_value':
-            command = "grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
+            command = "grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password"
         elif action == 'show_last_30_log_entries':
             command = f"tail -n 30 {LOGFILE}"
         elif action == 'show_login_attempts':
@@ -115,7 +119,7 @@ def api(action):
 
             command = (
                 f"sed -i 's/unlock_time=[0-9]*/unlock_time={unlock_time} /g' "
-                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf && grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
+                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password /etc/security/faillock.conf && grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
             )
 
         elif action == 'deny':
@@ -135,14 +139,13 @@ def api(action):
 
             command = (
                 f"sed -i 's/deny=[0-9]*/deny={deny_value} /g' "
-                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/security/faillock.conf && grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
+                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password /etc/security/faillock.conf && grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
             )
     else:
 
         return "Error: Invalid action", 400
 
     return run_command(command)
-
 
 @app.route('/api/sshd_status_log', methods=['GET'])
 def sshd_status_log():
@@ -153,7 +156,6 @@ def sshd_status_log():
         return log_content
     except Exception as e:
         return str(e)
-
 
 @app.route('/api/sshd', methods=['GET', 'POST'])
 def sshd_api():
