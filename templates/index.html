@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAM FAILLOCK WEB API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+            font-size: 2.5em;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .button-group .column {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            display: block;
+        }
+        .btn:hover {
+            background-color: #333;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-show {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-logging {
+            background-color: #ff5722; /* Orange */
+            color: black;
+        }
+        .btn-action {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-sshd {
+            background-color: #000;
+            color: white;
+        }
+        .btn-gdm {
+            background-color: #800080; /* Purple */
+            color: white;
+        }
+        .btn-log {
+            background-color: #ff5722; /* Orange */
+            color: black;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 10px;
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .instructions {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        pre {
+            background-color: #000;
+            color: #fff;
+            padding: 10px;
+            border: 8px solid #ddd;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: left;
+            max-width: 100%;
+            margin-top: 20px;
+            margin: 0 auto;
+            display: block;
+            box-sizing: border-box;
+        }
+        .console-frame {
+            width: 100%;
+            border: 3px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            background-color: #000;
+            text-align: left; /* Ensure console frame is aligned left */
+        }
+        .console {
+            background-color: #000;
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            height: 520px;
+            text-align: left; /* Ensure console text is aligned left */
+        }
+        .action-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .action-group input {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        async function fetchData(action, user = '', unlockTime = '', denyValue = '') {
+            let url = `/api/${action}`;
+            if (action === 'show_faillock_specific_user') {
+                url += `?user=${encodeURIComponent(user)}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                document.getElementById('output').innerText = text;
+            } catch (error) {
+                document.getElementById('output').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        async function postData(action, data) {
+            try {
+                const response = await fetch(`/api/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const text = await response.text();
+                document.getElementById('output').innerText = text;
+            } catch (error) {
+                document.getElementById('output').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        async function fetchDaemonData(action, daemon) {
+            const commands = {
+                'status': 'status',
+                'start': 'start',
+                'stop': 'stop',
+                'restart': 'restart'
+            };
+
+            if (!commands[action]) {
+                document.getElementById('output').innerText = `Invalid ${daemon.toUpperCase()} command`;
+                return;
+            }
+
+            const command = commands[action];
+            try {
+                // Execute the primary daemon command
+                await postData(daemon, { command });
+
+                // Fetch and display the content of the status log
+                const response = await fetch(`/api/${daemon}_status_log`);
+                const text = await response.text();
+                document.getElementById('output').innerText = text;
+            } catch (error) {
+                document.getElementById('output').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        function handleAction(action) {
+            const user = document.getElementById('user').value;
+            const unlockTime = parseInt(document.getElementById('unlock_time').value);
+            const denyValue = parseInt(document.getElementById('deny_value').value);
+
+            if (action.startsWith('sshd_')) {
+                fetchDaemonData(action.replace('sshd_', ''), 'sshd');
+            } else if (action.startsWith('gdm_')) {
+                fetchDaemonData(action.replace('gdm_', ''), 'gdm');
+            } else if (action === 'unlock') {
+                if (Number.isInteger(unlockTime)) {
+                    postData(action, { unlock_time: unlockTime });
+                } else {
+                    document.getElementById('output').innerText = 'Error: unlock_time must be an integer';
+                }
+            } else if (action === 'deny') {
+                if (Number.isInteger(denyValue)) {
+                    postData(action, { deny_value: denyValue });
+                } else {
+                    document.getElementById('output').innerText = 'Error: deny_value must be an integer';
+                }
+            } else {
+                fetchData(action, user);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>PAM FAILLOCK WEB API</h1>
+    <div class="button-group">
+        <div class="column">
+            <div class="section-title">PAM files</div>
+            <div class="action-group">
+                <button class="btn btn-show" onclick="handleAction('show_faillock_all_users')">Show faillock for All Users</button>
+            </div>
+            <div class="action-group">
+                <label for="user">Type a username to check faillock status:</label>
+                <input type="text" id="user" name="user">
+                <button class="btn btn-show" onclick="handleAction('show_faillock_specific_user')">Show faillock for Specific User</button>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-show" onclick="handleAction('show_unlock_time')">Show Unlock Time</button>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-show" onclick="handleAction('show_deny_value')">Show Failed attempts value</button>
+            </div>
+         </div>
+         <div class="column">
+			<div class="section-title">Logging and reporting</div>
+            <div class="action-group">
+                <button class="btn btn-logging" onclick="handleAction('show_last_30_log_entries')">Show Last 30 Log Entries</button>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-logging" onclick="handleAction('show_login_attempts')">Show entire log file</button>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-logging" onclick="handleAction('generate_logins_report')">Generate logins report</button>
+            </div>
+        </div>
+        <div class="column">
+            <div class="section-title">Actions</div>
+            <div class="action-group">
+                <button class="btn btn-action" onclick="handleAction('unlock')">Set lock time value</button>
+                <input type="number" id="unlock_time" name="unlock_time" placeholder="Unlock time (integer)">
+            </div>
+            <div class="action-group">
+                <button class="btn btn-action" onclick="handleAction('deny')">Set failed attempts value</button>
+                <input type="number" id="deny_value" name="deny_value" placeholder="Deny value (integer)">
+            </div>
+        </div>
+        <div class="column">
+            <div class="section-title">SSHD Daemon</div>
+            <div class="action-group">
+                <button class="btn btn-sshd" onclick="handleAction('sshd_status')">SSHD Status</button>
+                <button class="btn btn-sshd" onclick="handleAction('sshd_start')">Start SSHD</button>
+                <button class="btn btn-sshd" onclick="handleAction('sshd_stop')">Stop SSHD</button>
+                <button class="btn btn-sshd" onclick="handleAction('sshd_restart')">Restart SSHD</button>
+            </div>
+        </div>
+        <div class="column">
+	        <div class="section-title">GDM Daemon</div>
+            <div class="action-group">
+                <button class="btn btn-gdm" onclick="handleAction('gdm_status')">GDM Status</button>
+                <button class="btn btn-gdm" onclick="handleAction('gdm_start')">Start GDM</button>
+                <button class="btn btn-gdm" onclick="handleAction('gdm_stop')">Stop GDM</button>
+                <button class="btn btn-gdm" onclick="handleAction('gdm_restart')">Restart GDM</button>
+            </div>
+        </div>
+    </div>
+    <div class="console-frame">
+        <pre id="output" class="console">Output will appear here...</pre>
+    </div>
+</body>
+</html>
