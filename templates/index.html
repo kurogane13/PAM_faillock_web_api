@@ -15,7 +15,7 @@
         h1 {
             text-align: center;
             color: #007bff;
-            font-size: 2.5em;
+            font-size: 2em;
         }
         .button-group {
             display: flex;
@@ -135,6 +135,48 @@
         .action-group input {
             margin-bottom: 10px;
         }
+		.small-console-frame {
+			//background-color: #F4A300; /* Fluorescent green background */
+			background-color: var(--dynamic-bg-color); /* Use the CSS variable */
+			color: #000000; /* Strongest black text color */ /* Mint green: #98FF98 - Pale green: #98FB98 - Light green: #90EE90 */
+			font-weight: bold; /* Make text bold */
+			height: 75px; /* Fixed height */
+			width: 136px; /* Fixed width */
+			font-size: 1em;
+			overflow: hidden; /* Remove scrollbar */
+			margin-left: auto;
+			margin-right: auto;
+			font-size: 1em;
+			box-sizing: border-box; /* Ensure padding and borders do not affect width and height */
+		}
+		/* Orange Colors */
+		/* #FF7F50; Coral Orange */
+		/* #FF8C00; Dark Orange */
+		/* #CC5500; Burnt Orange */
+		/* #FF4500; Vivid Orange */
+		/* #F4A300; Tangerine */
+		/* #FFDAB9; Peach */
+		/* #F7C300; Mango */
+		/* #FFBF00; Amber */
+
+		/* Green Colors */
+		/* #00FF00; Fluorescent Green */
+		/* #00FF80; Bright Green */
+		/* #90EE90; Light Green */
+		/* #006400; Dark Green */
+		/* #8A9A5B; Moss Green */
+
+		/* Cyan Colors */
+		/* #00FFFF; Cyan */
+		/* #E0FFFF; Light Cyan */
+		/* #00CED1; Dark Cyan */
+		/* #AFEEEE; Pale Cyan */
+
+		/* Additional Colors */
+		/* #0000FF; Blue */
+		/* #FF0000; Red */
+		/* #800080; Purple */
+		/* #FFFF00; Yellow */
     </style>
     <script>
         async function fetchData(action, user = '', unlock_a_user= '', unlockTime = '', denyValue = '') {
@@ -226,6 +268,65 @@
                 fetchData(action, user);
             }
         }
+        
+		function startClock() {
+			// Define an array of colors
+			const colors = [
+				'#FF7F50', // Coral Orange
+				'#FF8C00', // Dark Orange
+				'#CC5500', // Burnt Orange
+				'#FF4500', // Vivid Orange
+				'#F4A300', // Tangerine
+				'#FFDAB9', // Peach
+				'#F7C300', // Mango
+				'#FFBF00', // Amber
+				'#00FF00', // Fluorescent Green
+				'#00FF80', // Bright Green
+				'#90EE90', // Light Green
+				'#006400', // Dark Green
+				'#8A9A5B', // Moss Green
+				'#00FFFF', // Cyan
+				'#E0FFFF', // Light Cyan
+				'#00CED1', // Dark Cyan
+				'#AFEEEE', // Pale Cyan
+				'#0000FF', // Blue
+				'#FF0000', // Red
+				'#800080', // Purple
+				'#FFFF00'  // Yellow
+			];
+
+			let colorIndex = 0; // Start with the first color
+			const changeInterval = 5000; // 5 seconds
+
+			// Fetch server time
+			fetch('/clock')
+				.then(response => response.json())
+				.then(data => {
+					let [datePart, timePart] = data.datetime.split(' '); // Split date and time
+					let serverDate = new Date(datePart + 'T' + timePart); // Create Date object with date and time
+
+					// Set initial date and time
+					document.getElementById('clock').textContent = `${datePart}\n${serverDate.toLocaleTimeString()}`;
+
+					// Update the clock every second
+					setInterval(() => {
+						serverDate.setSeconds(serverDate.getSeconds() + 1); // Increment seconds
+						document.getElementById('clock').textContent = `${datePart}\n${serverDate.toLocaleTimeString()}`;
+					}, 1000);
+
+					// Change background color every 5 seconds
+					setInterval(() => {
+						// Set the background color using the CSS variable
+						document.documentElement.style.setProperty('--dynamic-bg-color', colors[colorIndex]);
+						colorIndex = (colorIndex + 1) % colors.length; // Cycle through the colors
+					}, changeInterval);
+				})
+				.catch(error => {
+					console.error('Error fetching server time:', error);
+					document.getElementById('clock').textContent = 'Failed to load time.';
+				});
+		}
+
     </script>
 </head>
 <body>
@@ -259,6 +360,15 @@
             <div class="action-group">
                 <button class="btn btn-logging" onclick="handleAction('generate_logins_report')">Generate logins report</button>
             </div>
+            <div style="height: 15px;"></div> <!-- Adjust height as needed -->
+            <div class="small-console-frame">
+				<pre id="clock" class="small-console-frame">Loading server time...</pre>
+			</div>
+			<!-- Call the function defined in the external script -->
+			<script>
+				// Call the function to start the clock
+				startClock();
+			</script>
         </div>
         <div class="column">
             <div class="section-title">Set Values</div>
