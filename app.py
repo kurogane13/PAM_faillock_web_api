@@ -37,6 +37,11 @@ def run_command_no_sudo(command):
 def index():
     return render_template('index.html')
 
+@app.route('/clock')
+def get_server_time():
+    server_datetime = subprocess.check_output("date '+%Y-%m-%d %H:%M:%S'", shell=True).decode().strip()
+    return jsonify(datetime=server_datetime)
+
 @app.route('/api/<action>', methods=['GET', 'POST'])
 def api(action):
     if request.method == 'GET':
