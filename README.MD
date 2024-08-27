@@ -50,7 +50,7 @@ To get started with the PAM Faillock Web API, follow these instructions:
    ```bash
    sudo bash pam_files_backup_setup.sh
 
-5. **Depending on your system, you need to allow port 5000 through the firewall:
+5. **Depending on your system, you need to allow port 5000 through the firewall:**
 
    ```bash
    # For RHEL based systems:
