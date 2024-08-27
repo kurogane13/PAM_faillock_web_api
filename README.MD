@@ -50,7 +50,21 @@ To get started with the PAM Faillock Web API, follow these instructions:
    ```bash
    sudo bash pam_files_backup_setup.sh
 
-5. **Run the Application**
+5. **Depending on your system, you need to allow port 5000 through the firewall:
+
+   - For RHEL based systems:
+   
+   ```bash
+   sudo firewall-cmd --permanent --add-port=5000/tcp
+   sudo firewall-cmd --reload
+   For Debian-based Systems (like Ubuntu):
+   
+   ```bash
+   - For DEBIAN based systems:
+   sudo ufw allow 5000/tcp
+   sudo ufw reload**
+
+6. **Run the Application**
 
    - Start the Flask development server:
    ```bash
