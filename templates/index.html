@@ -135,13 +135,13 @@
         .action-group input {
             margin-bottom: 10px;
         }
-		.small-console-frame {
+        .small-console-frame {
 			//background-color: #F4A300; /* Fluorescent green background */
 			background-color: var(--dynamic-bg-color); /* Use the CSS variable */
 			color: #000000; /* Strongest black text color */ /* Mint green: #98FF98 - Pale green: #98FB98 - Light green: #90EE90 */
 			font-weight: bold; /* Make text bold */
 			height: 75px; /* Fixed height */
-			width: 136px; /* Fixed width */
+			width: 142px; /* Fixed width */
 			font-size: 1em;
 			overflow: hidden; /* Remove scrollbar */
 			margin-left: auto;
@@ -179,22 +179,28 @@
 		/* #FFFF00; Yellow */
     </style>
     <script>
-        async function fetchData(action, user = '', unlock_a_user= '', unlockTime = '', denyValue = '') {
+        async function fetchData(action, user = '', unlock_a_user = '', unlockTime = '', denyValue = '') {
             let url = `/api/${action}`;
             if (action === 'show_all_user_lockouts') {
+				let user = document.getElementById('user').value;
                 url += `?user=${encodeURIComponent(user)}`;
             } else if (action === 'unlock_user') {
+				let unlock_a_user = document.getElementById('unlock_a_user').value;
                 url += `?unlock_a_user=${encodeURIComponent(unlock_a_user)}`;
 			}
             try {
-                const response = await fetch(url);
-                const text = await response.text();
-                document.getElementById('output').innerText = text;
-            } catch (error) {
-                document.getElementById('output').innerText = 'Error: ' + error.message;
-            }
+				const response = await fetch(url);
+				const text = await response.text();
+				
+				if (response.ok) {
+					document.getElementById('output').innerText = text;
+				} else {
+					document.getElementById('output').innerText = 'Error: ' + text;
+				}
+			} catch (error) {
+				document.getElementById('output').innerText = 'Error: ' + error.message;
+			}
         }
-        
 
         async function postData(action, data) {
             try {
@@ -244,8 +250,6 @@
             const unlock_a_user = document.getElementById('unlock_a_user').value;
             const unlockTime = parseInt(document.getElementById('unlock_time').value);
             const denyValue = parseInt(document.getElementById('deny_value').value);
-            
-            fetchData(action, user, unlock_a_user, unlockTime, denyValue);
 
             if (action.startsWith('sshd_')) {
                 fetchDaemonData(action.replace('sshd_', ''), 'sshd');
@@ -263,13 +267,12 @@
                 } else {
                     document.getElementById('output').innerText = 'Error: deny_value must be an integer';
                 }
-
             } else {
                 fetchData(action, user);
             }
         }
         
-		function startClock() {
+        function startClock() {
 			// Define an array of colors
 			const colors = [
 				'#FF7F50', // Coral Orange
@@ -326,7 +329,6 @@
 					document.getElementById('clock').textContent = 'Failed to load time.';
 				});
 		}
-
     </script>
 </head>
 <body>
@@ -360,7 +362,6 @@
             <div class="action-group">
                 <button class="btn btn-logging" onclick="handleAction('generate_logins_report')">Generate logins report</button>
             </div>
-            <div style="height: 15px;"></div> <!-- Adjust height as needed -->
             <div class="small-console-frame">
 				<pre id="clock" class="small-console-frame">Loading server time...</pre>
 			</div>
@@ -371,7 +372,7 @@
 			</script>
         </div>
         <div class="column">
-            <div class="section-title">Set Values</div>
+            <div class="section-title">Actions</div>
             <div class="action-group">
                 <button class="btn btn-action" onclick="handleAction('unlock')">Set lock time value</button>
                 <input type="number" id="unlock_time" name="unlock_time" placeholder="Unlock time (integer)">
@@ -409,6 +410,5 @@
     <div class="console-frame">
         <pre id="output" class="console">Output will appear here...</pre>
     </div>
-    
 </body>
 </html>
