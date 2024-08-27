@@ -31,7 +31,7 @@ To get started with the PAM Faillock Web API, follow these instructions:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/pam-faillock-web-api.git
+   git clone https://github.com/kurogane13/PAM_faillock_web_api.git
    cd pam-faillock-web-api
 
 2. **Create a Virtual Environment (Recommended)**
