@@ -191,7 +191,7 @@
             try {
 				const response = await fetch(url);
 				const text = await response.text();
-				
+
 				if (response.ok) {
 					document.getElementById('output').innerText = text;
 				} else {
@@ -271,7 +271,7 @@
                 fetchData(action, user);
             }
         }
-        
+
         function startClock() {
 			// Define an array of colors
 			const colors = [
@@ -375,11 +375,11 @@
             <div class="section-title">Actions</div>
             <div class="action-group">
                 <button class="btn btn-action" onclick="handleAction('unlock')">Set lock time value</button>
-                <input type="number" id="unlock_time" name="unlock_time" placeholder="Unlock time (integer)">
+                <input type="number" id="unlock_time" name="unlock_time" placeholder="Unlock time (integer)" min="1">
             </div>
             <div class="action-group">
                 <button class="btn btn-action" onclick="handleAction('deny')">Set failed attempts value</button>
-                <input type="number" id="deny_value" name="deny_value" placeholder="Deny value (integer)">
+                <input type="number" id="deny_value" name="deny_value" placeholder="Deny value (integer)" min="1">
             </div>
             <div class="section-title">Unlock user</div>
 			<div class="action-group">
