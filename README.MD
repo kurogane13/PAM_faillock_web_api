@@ -61,13 +61,13 @@ To get started with the PAM Faillock Web API, follow these instructions:
    #For DEBIAN based systems (like Ubuntu):
 
    sudo ufw allow 5000/tcp
-   sudo ufw reload**
+   sudo ufw reload
 
 6. **Run the Application**
 
    - Start the Flask development server:
    ```bash
-    python3.x app.py
+    python3.8 app.py
 
 
 
