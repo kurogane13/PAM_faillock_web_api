@@ -52,15 +52,14 @@ To get started with the PAM Faillock Web API, follow these instructions:
 
 5. **Depending on your system, you need to allow port 5000 through the firewall:
 
-   - For RHEL based systems:
-   
    ```bash
+   # For RHEL based systems:
+
    sudo firewall-cmd --permanent --add-port=5000/tcp
    sudo firewall-cmd --reload
-   For Debian-based Systems (like Ubuntu):
    
-   ```bash
-   - For DEBIAN based systems:
+   #For DEBIAN based systems (like Ubuntu):
+
    sudo ufw allow 5000/tcp
    sudo ufw reload**
 
