@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, Response
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import subprocess
 import os
@@ -22,7 +22,6 @@ def run_command(command):
         result = subprocess.run(f'sudo {command}', shell=True, text=True, capture_output=True, check=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
-        print(f"Command failed: {e}")
         return "No data to show"
 
 def run_command_no_sudo(command):
@@ -49,90 +48,122 @@ def api(action):
             command = f"grep 'pam_faillock(sshd:auth): Consecutive login failures for user' {LOGFILE} | tail -n 1 && grep 'pam_faillock(gdm-password:auth): Consecutive login failures for user' {LOGFILE} | tail -n 1"
             output = run_command_no_sudo(command)
             return output
+
         elif action == 'show_all_user_lockouts':
             user = request.args.get('user', '').strip()
             if user:
-                # Check if the user exists using getent
+                # Check if the user exists
+                user_exists_command = f"getent passwd {user} > /dev/null"
+                user_exists = subprocess.run(user_exists_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                if user_exists.returncode == 0:
+                    # User exists, now check for lockouts
+                    command = f"""
+                        grep -E "pam_faillock\\((sshd|gdm-password):auth\\): Consecutive login failures for user {user}" {LOGFILE}
+                    """
+                    output = run_command(command)
+                    if output:
+                        return output
+                    else:
+                        return f"No lockout data found for user: {user}", 200
+                if user_exists.returncode == 1:
+                    command = f"""
+                        echo "Could not determine entries for user {user} in {LOGFILE}
+                    """
+                    output = run_command(command)
+                    if output:
+                        return output
+                else:
+                    # User does not exist
+                    command = f"""
+                        echo "Error: Unable to show lockouts for user: '{user}' does not exist in this system."
+                        echo "------------------------------------------------------------------------------"
+                        echo "Listing all existing users in the system:"
+                        echo "------------------------------------------------------------------------------"
+                        awk -F: '$3 >= 1000 {{print $1}}' /etc/passwd
+                        echo "------------------------------------------------------------------------------"
+                        date
+                    """
+                    output = run_command(command)
+                    return output
+            else:
                 command = f"""
-                if getent passwd "{user}" > /dev/null; then
-                    grep "pam_faillock(sshd:auth): Consecutive login failures for user {user}" {LOGFILE} && grep 'pam_faillock(gdm-password:auth): Consecutive login failures for user' {LOGFILE}
-                else
-                    echo "Error: Unable to show lockouts for user: '{user}' does not exist in this system."
+                    echo "Error: User parameter is required."
                     echo "------------------------------------------------------------------------------"
                     echo "Listing all existing users in the system:"
                     echo "------------------------------------------------------------------------------"
                     awk -F: '$3 >= 1000 {{print $1}}' /etc/passwd
                     echo "------------------------------------------------------------------------------"
                     date
-                fi
                 """
-            else:
-                command = f"""
-                echo "Error: User parameter is required.";
-                echo "------------------------------------------------------------------------------";
-                echo "Listing all existing users in the system:";
-                echo "------------------------------------------------------------------------------";
-                awk -F: '$3 >= 1000 {{print $1}}' /etc/passwd;
-                echo "------------------------------------------------------------------------------";
-                date
-                """
-            output = run_command_no_sudo(command)
-            return output
+                output = run_command(command)
+                if output:
+                    return output
+                else:
+                    return f"No lockout data found for user: {user}", 200
 
         elif action == 'unlock_user':
             unlock_a_user = request.args.get('unlock_a_user', '').strip()
+
             if unlock_a_user:
+                # Check if the user exists
+                unlock_a_user_exists_command = f"getent passwd {unlock_a_user} > /dev/null"
+                unlock_a_user_exists = subprocess.run(unlock_a_user_exists_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                if unlock_a_user_exists.returncode == 0:
+                    # User exists, attempt to unlock
+                    command = f"""
+                        sudo faillock --user {unlock_a_user} --reset &>/dev/null
+                        if [ $? -eq 0 ]; then
+                            echo "Successfully ran unlock operation for user: {unlock_a_user}"
+                        else
+                            echo "Failed to unlock user: {unlock_a_user}. Command failed."
+                        fi
+                        echo
+                        echo "---------------------------------------------------------"
+                        date
+                    """
+                    output = run_command(command)
+                    return output
+                else:
+                    # User does not exist
+                    command = f"""
+                        echo "Error: Unable to unlock user: '{unlock_a_user}' does not exist in this system."
+                        echo "------------------------------------------------------------------------------"
+                        echo "Listing all existing users in the system:"
+                        echo "------------------------------------------------------------------------------"
+                        awk -F: '$3 >= 1000 {{print $1}}' /etc/passwd
+                        echo "------------------------------------------------------------------------------"
+                        date
+                    """
+                    output = run_command_no_sudo(command)
+                    return output
+            else:
+                # No user parameter provided
                 command = f"""
-                if grep -q "^{unlock_a_user}:" /etc/passwd; then
-                    if sudo faillock --user {unlock_a_user} --reset &>/dev/null; then
-                        echo "Successfully ran unlock operation for user: {unlock_a_user}"
-                    else
-                        echo "Failed to unlock user: {unlock_a_user}. Command failed with exit status $?."
-                    fi
-                else
-                    echo "User '{unlock_a_user}' does not exist. Unable to unlock."
+                    echo "Error: No user provided. Please specify a username."
                     echo "------------------------------------------------------------------------------"
                     echo "Listing all existing users in the system:"
+                    echo "------------------------------------------------------------------------------"
                     awk -F: '$3 >= 1000 {{print $1}}' /etc/passwd
                     echo "------------------------------------------------------------------------------"
                     date
-                fi
-                """
-                output = run_command(command)
-                return output
-            else:
-                command = f"""
-                    if ! id "{unlock_a_user}" &>/dev/null; then
-                        echo "Error: Unable to run unlock operation for the user: '{unlock_a_user}' does not exist in this system.";
-                        echo "------------------------------------------------------------------------------";
-                        echo "Listing all existing users in the system:";
-                        echo "------------------------------------------------------------------------------";
-                        awk -F: '$3 >= 1000 {{print $1}}' /etc/passwd;
-                        echo "------------------------------------------------------------------------------";
-                        date
-                    else
-                        echo "User '{unlock_a_user}' exists.";
-                    fi
                 """
                 output = run_command_no_sudo(command)
                 return output
 
         elif action == 'show_unlock_time':
             command = "grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password"
-            output = run_command(command)
-            return output
+            return run_command_no_sudo(command)
+
         elif action == 'show_deny_value':
             command = "grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password"
-            output = run_command(command)
-            return output
+            return run_command_no_sudo(command)
+
         elif action == 'show_last_30_log_entries':
             command = f"tail -n 30 {LOGFILE}"
-            output = run_command(command)
-            return output
-        elif action == 'show_login_attempts':
-            command = f"cat {LOGFILE}"
-            output = run_command(command)
-            return output
+            return run_command_no_sudo(command)
+
         elif action == 'generate_logins_report':
             command = f"""
                 echo
@@ -172,8 +203,11 @@ def api(action):
                 echo
                 echo "Report ended at: $(date '+%a %b %d %T %Z %Y')"
             """
-            output = run_command(command)
-            return output
+            return run_command_no_sudo(command)
+
+        elif action == 'show_login_attempts':
+            command = f"cat {LOGFILE}"
+            return run_command_no_sudo(command)
 
     elif request.method == 'POST':
         if action == 'unlock':
@@ -187,11 +221,10 @@ def api(action):
                 return "Error: unlock_time is required", 400
 
             command = (
-                f"sed -i 's/unlock_time=[0-9]*/unlock_time={unlock_time} /g' "
-                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password /etc/security/faillock.conf && grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
+                f"sed -i 's/unlock_time=[0-9]*/unlock_time={unlock_time}/g' "
+                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password /etc/security/faillock.conf && grep unlock_time /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password"
             )
-            output = run_command(command)
-            return output
+            return run_command(command)
 
         elif action == 'deny':
             deny_value = request.json.get('deny_value')
@@ -204,23 +237,12 @@ def api(action):
                 return "Error: deny_value is required", 400
 
             command = (
-                f"sed -i 's/deny=[0-9]*/deny={deny_value} /g' "
-                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password /etc/security/faillock.conf && grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd"
+                f"sed -i 's/deny=[0-9]*/deny={deny_value}/g' "
+                "/etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password /etc/security/faillock.conf && grep deny /etc/security/faillock.conf /etc/pam.d/system-auth /etc/pam.d/password-auth /etc/pam.d/sshd /etc/pam.d/gdm-password"
             )
-            output = run_command(command)
-            return output
-    else:
-        return "Error: Invalid action", 400
+            return run_command(command)
 
-@app.route('/api/sshd_status_log', methods=['GET'])
-def sshd_status_log():
-    log_file_path = 'sshd_status.log'
-    try:
-        with open(log_file_path, 'r') as log_file:
-            log_content = log_file.read()
-        return log_content
-    except Exception as e:
-        return str(e)
+    return jsonify({"error": "Invalid action or method"}), 400
 
 @app.route('/api/sshd', methods=['GET', 'POST'])
 def sshd_api():
@@ -232,11 +254,15 @@ def sshd_api():
         if not command:
             command = request.json.get('command', '')  # For JSON data
 
-    # Create the log file and execute the SSHD command
+    if not command:
+        command = request.json.get('command', '')  # For JSON data
+    # Create the log file and execute the GDM command
     sshd_log = "touch sshd_status.log"
     os.system(sshd_log)
     sshd_command = f"sudo service sshd {command} > sshd_status.log 2>&1"
+    # Execute the command and return the output
     output = run_command(sshd_command)
+    return output
 
     # Automatically check the status after starting, stopping, or restarting SSHD
     if command in ['start', 'stop', 'restart']:
@@ -248,6 +274,16 @@ def sshd_api():
     with open('sshd_status.log', 'r') as log_file:
         output = log_file.read()
         return output
+
+@app.route('/api/sshd_status_log', methods=['GET'])
+def sshd_status_log():
+    log_file_path = 'sshd_status.log'
+    try:
+        with open(log_file_path, 'r') as log_file:
+            log_content = log_file.read()
+        return log_content
+    except Exception as e:
+        return str(e)
 
 @app.route('/api/gdm', methods=['GET', 'POST'])
 def gdm_api():
@@ -287,4 +323,4 @@ def gdm_status_log():
         return str(e)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
