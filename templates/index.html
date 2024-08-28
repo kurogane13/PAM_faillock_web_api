@@ -44,10 +44,10 @@
         .btn:hover {
             background-color: #333;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            transform: scale(1.05);
+            transform: scale(1.2);
         }
         .btn:active {
-            transform: scale(0.95);
+            transform: scale(1.50);
         }
         .btn-show {
             background-color: #007bff;
@@ -60,6 +60,8 @@
         .btn-action {
             background-color: #28a745;
             color: white;
+            font-size: 1em; /* Increase font size for buttons */
+            padding: 10px 20px; /* Add padding for better appearance */
         }
         .btn-sshd {
             background-color: #000;
@@ -72,6 +74,34 @@
         .btn-log {
             background-color: #ff5722; /* Orange */
             color: black;
+        }
+        .label-wrapper {
+            display: block; /* Makes the label span the full width of its container */
+            width: 78%
+            background-color: black; /* Light gray background for a banner look */
+            padding: 4px 6px; /* Adds space around the label text */
+            border-left: 8px solid red; /* Adds a colored border on the left */
+            border-right: 8px solid red; /* Adds a colored border on the left */
+            font-size: 1em; /* Sets the font size to 1em */
+            color: white; /* white text color */
+            margin-bottom: 7px; /* Adds space below the label */
+            border-radius: 14px
+        }
+        .label-wrapper-2 {
+            display: block; /* Makes the label span the full width of its container */
+            width: 48%
+            background-color: black; /* Light gray background for a banner look */
+            padding: 4px 6px; /* Adds space around the label text */
+            border-left: 8px solid cyan; /* Adds a colored border on the left */
+            border-right: 8px solid cyan; /* Adds a colored border on the left */
+            font-size: 1em; /* Sets the font size to 1em */
+            color: white; /* white text color */
+            margin-bottom: 0.5px; /* Adds space below the label */
+            border-radius: 14px
+        }
+        .label-wrapper label {
+            font-family: Arial, sans-serif; /* Sets a clean, modern font */
+            margin: 0; /* Removes default margin */
         }
         .section-title {
             font-size: 18px;
@@ -133,7 +163,24 @@
             align-items: center;
         }
         .action-group input {
-            margin-bottom: 10px;
+            margin-bottom: 3px;
+            width: 74%; /* Set width to 85% of the container */
+            font-size: 1em; /* Set font size for input text */
+            padding: 3px; /* Add padding for better appearance */
+            background-color: black; /* Set background color to black */
+            color: white; /* Set font color to white */
+            border: 1px solid white; /* Optional: Add a white border for better visibility */
+            border-radius: 10px; /* Optional: Add some rounding to the corners */
+        }
+        .action-group input[type="number"] {
+            margin-bottom: 1px;
+            width: 40%; /* Set width to 40% of the container */
+            font-size: 1em; /* Set font size for input text */
+            padding: 5px; /* Add padding for better appearance */
+            background-color: black; /* Set background color to black */
+            color: white; /* Set font color to white */
+            border: 1px solid white; /* Optional: Add a white border for better visibility */
+            border-radius: 10px; /* Optional: Add some rounding to the corners */
         }
         .small-console-frame {
 			//background-color: #F4A300; /* Fluorescent green background */
@@ -337,15 +384,16 @@
         <div class="column">
             <div class="section-title">Lockout status and values</div>
             <div class="action-group">
+                <button class="btn btn-show" onclick="handleAction('show_all_user_lockouts')">Show all locked entries for user</button>
+                <div class="label-wrapper">
+                    <input type="text" id="user" name="user" placeholder="Type the user here...">
+                </div>
+            </div>
+            <div class="action-group">
                 <button class="btn btn-show" onclick="handleAction('show_last_locked_user')">Show last locked user</button>
             </div>
             <div class="action-group">
-                <label for="user">Type a username to check all lockouts:</label>
-                <input type="text" id="user" name="user">
-                <button class="btn btn-show" onclick="handleAction('show_all_user_lockouts')">Show all locked entries for user</button>
-            </div>
-            <div class="action-group">
-                <button class="btn btn-show" onclick="handleAction('show_unlock_time')">Show Unlock Time</button>
+                <button class="btn btn-show" onclick="handleAction('show_unlock_time')">Show Unlock Time Value</button>
             </div>
             <div class="action-group">
                 <button class="btn btn-show" onclick="handleAction('show_deny_value')">Show Failed attempts value</button>
@@ -372,21 +420,26 @@
 			</script>
         </div>
         <div class="column">
-            <div class="section-title">Actions</div>
+            <div class="section-title">Unlock user</div>
+			<div class="action-group">
+                <button class="btn btn-action" onclick="handleAction('unlock_user')">Unlock user</button>
+                <div class="label-wrapper">
+				    <input type="text" id="unlock_a_user" name="unlock_a_user" placeholder="Type the user here...">
+                </div>
+			</div>
+            <div class="section-title">Set unlock values</div>
             <div class="action-group">
                 <button class="btn btn-action" onclick="handleAction('unlock')">Set lock time value</button>
-                <input type="number" id="unlock_time" name="unlock_time" placeholder="Unlock time (integer)" min="1">
+                <div class="label-wrapper-2">
+                    <input type="number" id="unlock_time" name="unlock_time"  min="1">
+                </div>
             </div>
             <div class="action-group">
                 <button class="btn btn-action" onclick="handleAction('deny')">Set failed attempts value</button>
-                <input type="number" id="deny_value" name="deny_value" placeholder="Deny value (integer)" min="1">
+                <div class="label-wrapper-2">
+                    <input type="number" id="deny_value" name="deny_value"  min="1">
+                </div>
             </div>
-            <div class="section-title">Unlock user</div>
-			<div class="action-group">
-				<label for="unlock_a_user">Type a username to unlock:</label>
-				<input type="text" id="unlock_a_user" name="unlock_a_user">
-				<button class="btn btn-action" onclick="handleAction('unlock_user')">Unlock user</button>
-			</div>
         </div>
         <div class="column">
             <div class="section-title">SSHD Daemon</div>
