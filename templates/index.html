@@ -184,7 +184,7 @@
             border-right: 8px solid red; /* Adds a colored border on the left */
             font-size: 1em; /* Sets the font size to 1em */
             color: white; /* white text color */
-            margin-bottom: 7px; /* Adds space below the label */
+            //margin-bottom: 3px; /* Adds space below the label */
             border-radius: 14px
         }
         .label-wrapper-2 {
@@ -196,7 +196,7 @@
             border-right: 8px solid cyan; /* Adds a colored border on the left */
             font-size: 1em; /* Sets the font size to 1em */
             color: white; /* white text color */
-            margin-bottom: 0.5px; /* Adds space below the label */
+            //margin-bottom: 0.5px; /* Adds space below the label */
             border-radius: 14px
         }
         .label-wrapper label {
@@ -235,6 +235,44 @@
             margin: 0 auto;
             display: block;
             box-sizing: border-box;
+        }
+        .text-effect-wrapper {
+            text-align: center; /* Center text horizontally */
+            width: 100%; /* Full width of the viewport */
+        }
+        .text-effect {
+            display: inline-block;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px; /* Adjust font size as needed */
+            color: #fff; /* Text color in white */
+            background-color: black; /* Black background */
+            padding: 10px; /* Add some padding */
+            border-radius: 14px; /* Rounded corners for the background */
+            border-left: 14px solid #00FF00; Fluorescent Green */; /* Adds a colored border on the left */
+            border-right: 14px solid #00FF00; /* Adds a colored border on the left */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Add a shadow effect around the frame */
+            position: relative;
+            overflow: hidden;
+            //color: white; /* Initially make the text black (invisible on the black background) */
+            //text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Add a text shadow for depth */
+            //transform: scale(1.1); /* Slightly enlarge the text for emphasis */
+        }
+        .blink {
+            color: white; /* Text color in white */
+            //animation: blink-text 3s step-start infinite; /* Blink animation for the text */
+            animation: fade-text 2s ease-in-out infinite; /* Apply fading animation */
+            display: inline-block; /* Ensure the animation applies to text properly */
+        }
+        @keyframes fade-text {
+            0% {
+                opacity: 1; /* Fully visible */
+            }
+            50% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1; /* Fully visible again */
+            }
         }
         .console {
             background-color: #000;
@@ -550,6 +588,11 @@
                 <button class="btn btn-gdm" onclick="handleAction('gdm_restart')">Restart GDM</button>
             </div>
         </div>
+    </div>
+    <div class="text-effect-wrapper">
+        <p class="text-effect">
+            <span class="blink">Press a button to run an operation. The output will show in console.</span>
+        </p>
     </div>
     <div class="console-frame">
         <pre id="output" class="console">Output will appear here...</pre>
